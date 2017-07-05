@@ -4,5 +4,5 @@ this repository is private
 **compile**  
 `$ javac -classpath .. Qlearning`
 
-**execute**
+**execute**  
 `$ java Qlearning`
