@@ -1,5 +1,3 @@
-package ai_report;
-
 public class Environment{
   /* 報酬 */
   private int[][] r = {{-10, 2},
