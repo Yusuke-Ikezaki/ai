@@ -1,5 +1,7 @@
 # ai_report
-this repository is private
+_this repository is private_  
+
+this is Q learning program.  
 
 **compile**  
 `$ javac -classpath .. Qlearning`
