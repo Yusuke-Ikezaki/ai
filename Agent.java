@@ -1,5 +1,3 @@
-package ai_report;
-
 public class Agent{
   /* 環境 */
   private Environment env;

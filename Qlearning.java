@@ -1,5 +1,3 @@
-package ai_report;
-
 public class Qlearning{
   public static void main(String[] args){
     /* 環境の生成 */
