@@ -73,7 +73,7 @@ public class Agent{
     System.out.println("Q Value");
     for(int i = 0; i < Q.length; i++){
       for(int j = 0; j < Q[i].length; j++)
-        System.out.print(Q[i][j] + " ");
+        System.out.printf("%6.1f ", Q[i][j]);
       System.out.println();
     }
   }
