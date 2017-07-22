@@ -19,8 +19,11 @@ public class ParticleFilter{
   private double[] particles;
   /* 観測確率 */
   private double[][] observes;
+  /* モニター間隔 */
+  private int monitor_interval = 1;
 
   /* コンストラクタ */
+  /* ParticleFilter(状態数, 粒子数, 観測成功率, 行動成功率) */
   public ParticleFilter(int state_n, int particle_n, double observe_p, double action_p){
     this.state_n = state_n;
     this.particle_n = particle_n;
@@ -28,11 +31,11 @@ public class ParticleFilter{
     this.action_p = action_p;
     particles = new double[state_n];
     observes = new double[state_n][state_n];
-    init();
+    init_observes();
   }
 
-  /* 初期化 */
-  public void init(){
+  /* 観測確率の初期化 */
+  private void init_observes(){
     for(int i = 0; i < state_n; i++){
       if(i == 0){
         observes[i][0] = observe_p * observe_p;
@@ -55,25 +58,48 @@ public class ParticleFilter{
       }
     }
   }
-  public int run(int initial_state, int tMax, boolean monitor){
+  /* 粒子の分布の初期化 */
+  private void init_particles(){
     double num = particle_n / state_n;
     for(int i = 0; i < state_n; i++)
       particles[i] = num;
+  }
+  /* モニター間隔の設定 */
+  public void setMonitorInterval(int monitor_interval){
+      this.monitor_interval = monitor_interval;
+  }
+  /* 行動 */
+  /* run(初期状態, 行動回数, モニターの有無) */
+  public int run(int initial_state, int tMax, boolean monitor){
+    /* 粒子の分布の初期化 */
+    init_particles();
+    /* 初期状態の設定 */
     int s = initial_state;
+    /* 初期状態での観測 */
     int o = observe(s);
+    /* 初期状況の出力 */
     if(monitor) print_situation(s, 0);
     for(int t = 1; t <= tMax; t++){
+      /* 行動の選択 */
       int a = choose_action(o);
+      /* 行動 */
       int move = act(s, a);
       s += move;
+      /* 観測 */
       o = observe(s);
+      /* サンプリング */
       sampling(a);
+      /* インポータンス */
       importance(s);
+      /* リサンプリング */
       resampling();
-      if(monitor && t % 10 == 0) print_situation(s, t);
+      /* monitor_intervalごとに状況を出力 */
+      if(monitor && t % monitor_interval == 0) print_situation(s, t);
     }
+    /* 最終的な状態を返す */
     return s;
   }
+  /* 状態の予測 */
   public int predict(){
     double max = particles[0];
     int max_index = 0;
@@ -84,8 +110,11 @@ public class ParticleFilter{
       }
     return max_index + 1;
   }
-  public int observe(int s){
+  /* 観測 */
+  private int observe(int s){
+    /* 左の壁の観測 */
     double left_rand = Math.random();
+    /* 右の壁の観測 */
     double right_rand = Math.random();
     if(s == 1){
       if(left_rand < observe_p){
@@ -117,7 +146,8 @@ public class ParticleFilter{
       return ERROR;
     }
   }
-  public int choose_action(int o){
+  /* 行動の選択 */
+  private int choose_action(int o){
     if(o == 1){
       double rand = Math.random();
       if(rand < 0.5) return LEFT;
@@ -134,10 +164,12 @@ public class ParticleFilter{
       return ERROR;
     }
   }
-  public int act(int s, int a){
+  /* 行動 */
+  private int act(int s, int a){
     if(a == LEFT){
       if(s == 1) return STAY;
       else{
+        /* 行動確率 */
         double rand = Math.random();
         if(rand < action_p) return LEFT;
         else return STAY;
@@ -145,6 +177,7 @@ public class ParticleFilter{
     } else if(a == RIGHT){
       if(s == state_n) return STAY;
       else{
+        /* 行動確率 */
         double rand = Math.random();
         if(rand < action_p) return RIGHT;
         else return STAY;
@@ -157,7 +190,8 @@ public class ParticleFilter{
       return ERROR;
     }
   }
-  public void sampling(int a){
+  /* サンプリング */
+  private void sampling(int a){
     double[] copy = new double[state_n];
     for(int i = 0; i < copy.length; i++)
       copy[i] = 0.0;
@@ -181,18 +215,21 @@ public class ParticleFilter{
     }
     particles = copy;
   }
-  public void importance(int s){
+  /* インポータンス */
+  private void importance(int s){
     for(int i = 0; i < state_n; i++)
       particles[i] *= observes[s - 1][i];
   }
-  public void resampling(){
+  /* リサンプリング */
+  private void resampling(){
     double sum = 0.0;
     for(int i = 0; i < state_n; i++)
       sum += particles[i];
     for(int i = 0; i < state_n; i++)
       particles[i] *= particle_n / sum;
   }
-  public void print_situation(int s, int t){
+  /* 状況の出力 */
+  private void print_situation(int s, int t){
     System.out.println("t = " + t);
     System.out.println("State: s = " + s);
     System.out.print("Particles: [");
